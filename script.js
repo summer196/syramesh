@@ -1,140 +1,64 @@
-/* ════════════════════════════════════════════
-   script.js — NexusServer
-   ════════════════════════════════════════════ */
+// Mengambil elemen dari HTML
+const target = document.getElementById('target');
+const scoreElement = document.getElementById('score');
+const gameArea = document.getElementById('game-area');
 
-// ── 1. CUSTOM CURSOR ─────────────────────────────────────────────────────────
-const cursor = document.getElementById('cursor');
-const ring   = document.getElementById('cursorRing');
+let score = 0;
+let moveInterval;
 
-let mouseX = 0, mouseY = 0;  // actual mouse position
-let ringX  = 0, ringY  = 0;  // smoothed ring position
-
-// Track mouse movement
-document.addEventListener('mousemove', (e) => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
+// Fungsi saat pita diklik
+target.addEventListener('click', (event) => {
+    score++;
+    scoreElement.textContent = score;
+    moveTarget(); // Pindahkan pita ke tempat baru
+    createSparkle(event.clientX, event.clientY); // Munculkan efek bintang
 });
 
-// Animate cursor and ring separately for smooth lag effect
-function animateCursor() {
-  cursor.style.left = mouseX + 'px';
-  cursor.style.top  = mouseY + 'px';
+// Fungsi untuk memindahkan pita secara acak di dalam kotak
+function moveTarget() {
+    const areaWidth = gameArea.clientWidth;
+    const areaHeight = gameArea.clientHeight;
+    
+    // Kita kurangi sedikit ukurannya agar pita tidak keluar batas kotak
+    const maxX = areaWidth - 50; 
+    const maxY = areaHeight - 50;
 
-  // Ring follows with easing
-  ringX += (mouseX - ringX) * 0.12;
-  ringY += (mouseY - ringY) * 0.12;
-  ring.style.left = ringX + 'px';
-  ring.style.top  = ringY + 'px';
+    const randomX = Math.floor(Math.random() * maxX);
+    const randomY = Math.floor(Math.random() * maxY);
 
-  requestAnimationFrame(animateCursor);
+    target.style.left = `${randomX + 25}px`;
+    target.style.top = `${randomY + 25}px`;
 }
-animateCursor();
 
-// Cursor grows on hover over interactive elements
-const interactiveEls = document.querySelectorAll(
-  'button, a, .feature-card, .step, .tech-chip'
-);
-interactiveEls.forEach((el) => {
-  el.addEventListener('mouseenter', () => {
-    cursor.style.width  = '20px';
-    cursor.style.height = '20px';
-    ring.style.width    = '52px';
-    ring.style.height   = '52px';
-  });
-  el.addEventListener('mouseleave', () => {
-    cursor.style.width  = '12px';
-    cursor.style.height = '12px';
-    ring.style.width    = '36px';
-    ring.style.height   = '36px';
-  });
-});
+// Fungsi membuat efek bintang (sparkle) saat diklik
+function createSparkle(x, y) {
+    const sparkle = document.createElement('div');
+    sparkle.textContent = '✨';
+    sparkle.style.position = 'fixed';
+    sparkle.style.left = `${x - 10}px`;
+    sparkle.style.top = `${y - 10}px`;
+    sparkle.style.pointerEvents = 'none'; // Supaya tidak mengganggu klik
+    sparkle.style.animation = 'floatUp 0.8s ease-out forwards';
+    sparkle.style.fontSize = '1.5em';
+    sparkle.style.zIndex = '999';
+    
+    document.body.appendChild(sparkle);
 
+    // Hapus elemen bintang setelah animasinya selesai
+    setTimeout(() => {
+        sparkle.remove();
+    }, 800);
+}
 
-// ── 2. SCROLL REVEAL ─────────────────────────────────────────────────────────
-const revealEls = document.querySelectorAll('.reveal');
-
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) {
-      const delay = entry.target.dataset.delay || 0;
-      setTimeout(() => {
-        entry.target.classList.add('visible');
-      }, delay * 100);
+// Menambahkan CSS untuk animasi bintang secara dinamis dari JS
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes floatUp {
+        0% { opacity: 1; transform: translateY(0) scale(1); }
+        100% { opacity: 0; transform: translateY(-40px) scale(1.5); }
     }
-  });
-}, { threshold: 0.1 });
+`;
+document.head.appendChild(style);
 
-// Stagger sibling cards slightly
-revealEls.forEach((el, i) => {
-  el.dataset.delay = i % 4;
-  revealObserver.observe(el);
-});
-
-
-// ── 3. ANIMATED COUNTERS ─────────────────────────────────────────────────────
-const counterEls = document.querySelectorAll('.counter');
-
-const counterObserver = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    if (!entry.isIntersecting) return;
-
-    const el        = entry.target;
-    const target    = parseFloat(el.dataset.target);
-    const isDecimal = target % 1 !== 0;
-    const duration  = 1800;  // ms
-    const steps     = 60;
-    let   step      = 0;
-
-    const timer = setInterval(() => {
-      step++;
-      const progress = step / steps;
-      // Ease-out cubic
-      const ease = 1 - Math.pow(1 - progress, 3);
-      const val  = target * ease;
-
-      el.textContent = isDecimal
-        ? val.toFixed(1)
-        : Math.round(val).toLocaleString();
-
-      if (step >= steps) {
-        clearInterval(timer);
-        el.textContent = isDecimal
-          ? target.toFixed(1)
-          : target.toLocaleString();
-      }
-    }, duration / steps);
-
-    counterObserver.unobserve(el);
-  });
-}, { threshold: 0.5 });
-
-counterEls.forEach((c) => counterObserver.observe(c));
-
-
-// ── 4. SMOOTH SCROLL ─────────────────────────────────────────────────────────
-document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-  anchor.addEventListener('click', (e) => {
-    const target = document.querySelector(anchor.getAttribute('href'));
-    if (target) {
-      e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  });
-});
-
-
-// ── 5. FEATURE CARD 3D TILT ──────────────────────────────────────────────────
-document.querySelectorAll('.feature-card').forEach((card) => {
-  card.addEventListener('mousemove', (e) => {
-    const rect = card.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width  - 0.5;  // -0.5 to 0.5
-    const y = (e.clientY - rect.top)  / rect.height - 0.5;
-
-    card.style.transform =
-      `translateY(-8px) rotateX(${-y * 8}deg) rotateY(${x * 8}deg)`;
-  });
-
-  card.addEventListener('mouseleave', () => {
-    card.style.transform = '';
-  });
-});
+// Tantangan: Pita akan berpindah sendiri setiap 1.2 detik!
+moveInterval = setInterval(moveTarget, 1200);

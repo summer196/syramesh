@@ -1,262 +1,41 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Syramesh - BELAJAR WEB SERVER</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>syramesh - Web Server</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <div class="cursor" id="cursor"></div>
-  <div class="cursor-ring" id="cursorRing"></div>
-  <div class="bg-grid"></div>
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-
-  <main>
-
-    <!-- ═══ NAVBAR ═══ -->
-    <nav>
-      <a class="nav-logo" href="#">
-        <div class="logo-icon">⚡</div>
-        Syramesh Gokil
-      </a>
-      <ul class="nav-links">
-        <li><a href="#features">Fitur</a></li>
-        <li><a href="#cara-kerja">Cara Kerja</a></li>
-        <li><a href="#tech">Teknologi</a></li>
-        <li><a href="#terminal">Demo</a></li>
-        <li><a href="#cta" class="nav-cta">Mulai Sekarang Cuy</a></li>
-      </ul>
-    </nav>
-
-    <!-- ═══ HERO ═══ -->
-    <section class="hero">
-      <div class="hero-content">
-        <div class="hero-badge">
-          <div class="badge-dot"></div>
-          Web Server · Tugas Pemrograman Web
-        </div>
-        <h1>Web Server<br><span>Cepat, Handal,</span><br>& Modern</h1>
-        <p>Server web berperforma tinggi yang dibangun untuk menangani ribuan request secara bersamaan. Ditenagai arsitektur asinkron dengan latensi ultra-rendah.</p>
-        <div class="hero-btns">
-          <button class="btn-primary">🚀 Jalankan Server</button>
-          <button class="btn-outline">📄 Lihat Dokumentasi</button>
-        </div>
-        <div class="ping-wrap" style="margin-top:28px;">
-          <div class="ping-ring"></div>
-          <span class="ping-label">Server aktif · Latensi: 12ms</span>
-        </div>
-      </div>
-
-      <div class="hero-visual">
-        <div class="server-card">
-          <div class="server-header">
-            <span class="server-icon">🖥️</span>
-            <div>
-              <div class="server-title">Syramesh Web v2.4.1</div>
-              <div class="server-sub">port: 8080 · http/1.1</div>
+    <div class="container">
+        <header>
+            <h1>🎀 syramesh 🎀</h1>
+        </header>
+        
+        <main>
+            <div class="card">
+                <h2>Halo! Selamat datang 💕</h2>
+                <p>Ini adalah halaman web server pertama hasil dari proses belajarku. Terima kasih sudah berkunjung ke halamanku!</p>
+                <div class="folder-info">
+                    <p>📁 Saat ini kamu sedang mengakses folder: <strong>IchanGanteng</strong></p>
+                </div>
             </div>
-            <div class="status-dot-live"></div>
-          </div>
-          <div class="metric-row">
-            <span class="metric-label">CPU Usage</span>
-            <span class="metric-value">20000%</span>
-          </div>
-          <div class="metric-bar-wrap"><div class="metric-bar" style="width:23%"></div></div>
-          <div class="metric-row">
-            <span class="metric-label">Memory</span>
-            <span class="metric-value">1000%</span>
-          </div>
-          <div class="metric-bar-wrap"><div class="metric-bar" style="width:48%"></div></div>
-          <div class="metric-row">
-            <span class="metric-label">Req/s</span>
-            <span class="metric-value">1,247</span>
-          </div>
-          <div class="metric-row">
-            <span class="metric-label">Uptime</span>
-            <span class="metric-value">99.98%</span>
-          </div>
-          <div class="metric-row" style="margin-top:6px">
-            <span class="metric-label">Active Conn</span>
-            <span class="metric-value">384</span>
-          </div>
-          <div style="margin-top:16px; border-top:1px solid rgba(45,140,240,0.15); padding-top:14px;">
-            <div class="log-line"><span class="log-ok">[OK]</span> &nbsp;Server started on :8080</div>
-            <div class="log-line"><span class="log-info">[--]</span> &nbsp;Worker threads: 4</div>
-            <div class="log-line"><span class="log-ok">[OK]</span> &nbsp;Static files: /public</div>
-            <div class="log-line"><span class="log-warn">[>>]</span> &nbsp;GET /api/data 200 11ms</div>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <!-- ═══ STATS BAR ═══ -->
-    <div class="stats-bar">
-      <div class="stat-item">
-        <div class="stat-num"><span class="counter" data-target="99.9">0</span><span>%</span></div>
-        <div class="stat-label">Uptime</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num"><span class="counter" data-target="12">0</span><span>ms</span></div>
-        <div class="stat-label">Avg. Latency</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num"><span class="counter" data-target="10000">0</span><span>+</span></div>
-        <div class="stat-label">Req/detik</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num"><span class="counter" data-target="256">0</span><span>MB</span></div>
-        <div class="stat-label">RAM Usage</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num"><span class="counter" data-target="4">0</span><span>×</span></div>
-        <div class="stat-label">Worker Threads</div>
-      </div>
+            <div class="game-container">
+                <h3>Ayo main sebentar!</h3>
+                <p>Tangkap pita pink yang bergerak dengan cara diklik!</p>
+                <p class="score-board">Skor kamu: <span id="score">0</span></p>
+                <div id="game-area">
+                    <div id="target">🎀</div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Dibuat dengan 💖 oleh Ichan</p>
+        </footer>
     </div>
 
-    <!-- ═══ FEATURES ═══ -->
-    <section class="features reveal" id="features">
-      <div class="section-label">Fitur Unggulan</div>
-      <h2 class="section-title">Dibangun untuk <span style="color:var(--blue-300)">Performa</span></h2>
-      <p class="section-sub">Setiap komponen dirancang agar server berjalan efisien, aman, dan mudah dikelola.</p>
-      <div class="features-grid">
-        <div class="feature-card reveal">
-          <div class="feature-icon">⚡</div>
-          <div class="feature-title">Async Non-Blocking I/O</div>
-          <p class="feature-desc">Menangani ribuan koneksi secara bersamaan tanpa memblokir thread utama menggunakan event loop.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon">🔒</div>
-          <div class="feature-title">HTTPS & TLS Support</div>
-          <p class="feature-desc">Enkripsi end-to-end dengan sertifikat SSL/TLS untuk melindungi data pengguna saat transit.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon">🗂️</div>
-          <div class="feature-title">Static File Serving</div>
-          <p class="feature-desc">Sajikan file HTML, CSS, JS, dan media dengan caching otomatis untuk loading super cepat.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon">🔀</div>
-          <div class="feature-title">URL Routing</div>
-          <p class="feature-desc">Sistem routing fleksibel mendukung parameter dinamis, wildcard, dan middleware custom.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon">📊</div>
-          <div class="feature-title">Real-time Monitoring</div>
-          <p class="feature-desc">Dashboard live menampilkan CPU, memori, request rate, dan error log secara real-time.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon">🔄</div>
-          <div class="feature-title">Auto Reload</div>
-          <p class="feature-desc">Hot reload otomatis saat file berubah selama development. Tidak perlu restart manual.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ═══ HOW IT WORKS ═══ -->
-    <section class="how-it-works reveal" id="cara-kerja">
-      <div class="section-label">Alur Kerja</div>
-      <h2 class="section-title">Cara Kerja Server</h2>
-      <p class="section-sub">Dari request masuk hingga response dikirim dalam milidetik.</p>
-      <div class="steps-container">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-title">Client Request</div>
-          <p class="step-desc">Browser mengirim HTTP request ke port server yang ditentukan</p>
-        </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-title">Parse & Route</div>
-          <p class="step-desc">Server mem-parsing header dan mencocokkan URL dengan route handler</p>
-        </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <div class="step-title">Process</div>
-          <p class="step-desc">Handler memproses logic, akses file atau database sesuai kebutuhan</p>
-        </div>
-        <div class="step">
-          <div class="step-num">4</div>
-          <div class="step-title">Send Response</div>
-          <p class="step-desc">Server mengirim HTTP response dengan status code dan body yang sesuai</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ═══ TECH STACK ═══ -->
-    <section class="tech-stack reveal" id="tech">
-      <div class="section-label">Teknologi</div>
-      <h2 class="section-title" style="text-align:center; margin-bottom:16px;">Stack yang Digunakan</h2>
-      <p class="section-sub">Dibangun di atas teknologi open-source yang teruji dan terpercaya.</p>
-      <div class="tech-grid">
-        <div class="tech-chip"><div class="tech-dot"></div>Node.js</div>
-        <div class="tech-chip"><div class="tech-dot"></div>Express.js</div>
-        <div class="tech-chip"><div class="tech-dot"></div>HTTP/1.1</div>
-        <div class="tech-chip"><div class="tech-dot"></div>TCP/IP</div>
-        <div class="tech-chip"><div class="tech-dot"></div>Socket.io</div>
-        <div class="tech-chip"><div class="tech-dot"></div>JavaScript</div>
-        <div class="tech-chip"><div class="tech-dot"></div>JSON API</div>
-        <div class="tech-chip"><div class="tech-dot"></div>MIME Types</div>
-        <div class="tech-chip"><div class="tech-dot"></div>SSL/TLS</div>
-        <div class="tech-chip"><div class="tech-dot"></div>Nodemon</div>
-        <div class="tech-chip"><div class="tech-dot"></div>npm</div>
-        <div class="tech-chip"><div class="tech-dot"></div>Git</div>
-      </div>
-    </section>
-
-    <!-- ═══ TERMINAL ═══ -->
-    <section class="terminal-section reveal" id="terminal">
-      <div class="section-label">Demo</div>
-      <h2 class="section-title" style="text-align:center; margin-bottom:12px;">Jalankan dalam Detik</h2>
-      <p class="section-sub">Cukup beberapa perintah untuk memulai web server kamu.</p>
-      <div class="terminal">
-        <div class="term-bar">
-          <div class="term-btn red"></div>
-          <div class="term-btn yellow"></div>
-          <div class="term-btn green"></div>
-          <span class="term-title">bash — webserver</span>
-        </div>
-        <div class="term-body">
-          <div class="term-line"><span class="tc-prompt">~$</span> <span class="tc-cmd">git clone https://github.com/kamu/nexus-server</span></div>
-          <div class="term-line"><span class="tc-info">Cloning into 'nexus-server'... done.</span></div>
-          <div class="term-line"><span class="tc-prompt">~$</span> <span class="tc-cmd">cd nexus-server && npm install</span></div>
-          <div class="term-line"><span class="tc-ok">added 47 packages in 2.4s</span></div>
-          <div class="term-line"><span class="tc-prompt">~$</span> <span class="tc-cmd">node server.js</span></div>
-          <div class="term-line"><span class="tc-ok">✔ Server berjalan di </span><span class="tc-url">http://localhost:8080</span></div>
-          <div class="term-line"><span class="tc-dim">Tekan Ctrl+C untuk menghentikan server</span> <span class="cursor-blink"></span></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ═══ CTA ═══ -->
-    <section class="cta-section reveal" id="cta">
-      <div class="cta-glow"></div>
-      <h2>Siap Membangun<br>Web Server-mu?</h2>
-      <p>Download source code, pelajari arsitekturnya, dan kembangkan lebih jauh.</p>
-      <div class="cta-btns">
-        <button class="btn-primary">⬇ Download Source Code</button>
-        <button class="btn-outline">📖 Baca Dokumentasi</button>
-      </div>
-    </section>
-
-    <!-- ═══ FOOTER ═══ -->
-    <footer>
-      <div class="footer-left">
-        <strong>NexusServer</strong> · Tugas Pemrograman Web · Teknik Informatika
-      </div>
-      <div class="footer-links">
-        <a href="#">Beranda</a>
-        <a href="#">Dokumentasi</a>
-        <a href="#">Source Code</a>
-        <a href="#">Kontak</a>
-      </div>
-    </footer>
-
-  </main>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
