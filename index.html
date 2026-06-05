@@ -565,15 +565,13 @@ function buildMaterials(){
 
 // Face directions: +Y,-Y,+X,-X,+Z,-Z
 const FACES = [
-  { dir:[0,1,0],  corners:[[0,1,1],[1,1,1],[1,1,0],[0,1,0]], matIdx:0 }, // top
-  { dir:[0,-1,0], corners:[[0,0,0],[1,0,0],[1,0,1],[0,0,1]], matIdx:1 }, // bottom
-  { dir:[1,0,0],  corners:[[1,0,1],[1,1,1],[1,1,0],[1,0,0]], matIdx:2 }, // +x
-  { dir:[-1,0,0], corners:[[0,0,0],[0,1,0],[0,1,1],[0,0,1]], matIdx:3 }, // -x
-  { dir:[0,0,1],  corners:[[1,0,1],[0,0,1],[0,1,1],[1,1,1]], matIdx:4 }, // +z
-  { dir:[0,0,-1], corners:[[0,0,0],[1,0,0],[1,1,0],[0,1,0]], matIdx:5 }, // -z
+  { dir:[0,1,0],  corners:[[0,1,0],[1,1,0],[1,1,1],[0,1,1]], uvs:[[0,1],[1,1],[1,0],[0,0]], matIdx:0, ao:1.0 },
+  { dir:[0,-1,0], corners:[[0,0,1],[1,0,1],[1,0,0],[0,0,0]], uvs:[[0,1],[1,1],[1,0],[0,0]], matIdx:1, ao:0.5 },
+  { dir:[1,0,0],  corners:[[1,0,0],[1,1,0],[1,1,1],[1,0,1]], uvs:[[1,1],[1,0],[0,0],[0,1]], matIdx:2, ao:0.8 },
+  { dir:[-1,0,0], corners:[[0,0,1],[0,1,1],[0,1,0],[0,0,0]], uvs:[[1,1],[1,0],[0,0],[0,1]], matIdx:3, ao:0.8 },
+  { dir:[0,0,1],  corners:[[1,0,1],[0,0,1],[0,1,1],[1,1,1]], uvs:[[0,1],[1,1],[1,0],[0,0]], matIdx:4, ao:0.65 },
+  { dir:[0,0,-1], corners:[[0,0,0],[1,0,0],[1,1,0],[0,1,0]], uvs:[[1,1],[0,1],[0,0],[1,0]], matIdx:5, ao:0.65 },
 ];
-
-const UV = [[0,1],[1,1],[1,0],[0,0]];
 
 function rebuildChunk(cx, cz){
   const key = chunkKey(cx,cz);
@@ -622,7 +620,7 @@ function rebuildChunk(cx, cz){
             const [cx2,cy2,cz2] = face.corners[ci];
             g.positions.push(lx+cx2, ly+cy2, lz+cz2);
             g.normals.push(...face.dir);
-            g.uvs.push(UV[ci][0], UV[ci][1]);
+            g.uvs.push(face.uvs[ci][0], face.uvs[ci][1]);
           }
           g.indices.push(base,base+1,base+2, base,base+2,base+3);
         }
@@ -767,9 +765,9 @@ let targetBlock = null; // {wx,wy,wz, face:[dx,dy,dz]}
 
 function raycast(){
   const dir = new THREE.Vector3();
-  dir.x = Math.cos(player.pitch)*Math.sin(player.yaw);
+  dir.x = Math.cos(player.pitch)*(-Math.sin(player.yaw));
   dir.y = Math.sin(player.pitch);
-  dir.z = Math.cos(player.pitch)*Math.cos(player.yaw);
+  dir.z = Math.cos(player.pitch)*(-Math.cos(player.yaw));
   // not needed; use manual DDA
   dir.normalize();
 
@@ -873,10 +871,10 @@ function physicsStep(dt){
   // Movement input
   const speed = player.crouching ? CROUCH_SPEED : (player.sprinting ? SPRINT_SPEED : WALK_SPEED);
   let mx=0, mz=0;
-  if(keys['KeyW']||keys['ArrowUp'])    { mx+=Math.sin(player.yaw);  mz+=Math.cos(player.yaw); }
-  if(keys['KeyS']||keys['ArrowDown'])  { mx-=Math.sin(player.yaw);  mz-=Math.cos(player.yaw); }
-  if(keys['KeyA']||keys['ArrowLeft'])  { mx+=Math.cos(player.yaw);  mz-=Math.sin(player.yaw); }
-  if(keys['KeyD']||keys['ArrowRight']) { mx-=Math.cos(player.yaw);  mz+=Math.sin(player.yaw); }
+  if(keys['KeyW']||keys['ArrowUp'])    { mx-=Math.sin(player.yaw);  mz-=Math.cos(player.yaw); }
+  if(keys['KeyS']||keys['ArrowDown'])  { mx+=Math.sin(player.yaw);  mz+=Math.cos(player.yaw); }
+  if(keys['KeyA']||keys['ArrowLeft'])  { mx-=Math.cos(player.yaw);  mz+=Math.sin(player.yaw); }
+  if(keys['KeyD']||keys['ArrowRight']) { mx+=Math.cos(player.yaw);  mz-=Math.sin(player.yaw); }
   const len = Math.sqrt(mx*mx+mz*mz);
   if(len>0){ mx=mx/len*speed; mz=mz/len*speed; }
 
@@ -1304,7 +1302,7 @@ function gameLoop(timestamp){
   const eyeY = player.y + (player.crouching ? 1.2 : 1.6);
   camera.position.set(player.x, eyeY, player.z);
   camera.rotation.order = 'YXZ';
-  camera.rotation.y = player.yaw;
+  camera.rotation.y = player.yaw + Math.PI;
   camera.rotation.x = player.pitch;
 
   // Sky follows camera
