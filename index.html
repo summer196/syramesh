@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CraftWeb — Minecraft Browser</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:100%; height:100%; overflow:hidden; background:#87CEEB; font-family:'Segoe UI', sans-serif; }
+
+/* ── CANVAS ── */
+#gameCanvas { display:block; width:100%; height:100%; cursor:none; }
+
+/* ── OVERLAY / MENU ── */
+#menu-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.65);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  z-index:200;
+}
+#menu-overlay h1 {
+  font-size:3rem; color:#fff; text-shadow:3px 3px 0 #000;
+  font-family:'Courier New',monospace; letter-spacing:4px; margin-bottom:8px;
+}
+#menu-overlay p { color:#aaa; margin-bottom:32px; font-size:0.9rem; }
+.menu-btn {
+  padding:12px 48px; font-size:1.1rem; font-family:'Courier New',monospace;
+  background:#4C7A2A; color:#fff; border:3px solid #7EC850;
+  cursor:pointer; margin-bottom:12px; letter-spacing:2px;
+  transition:background .15s;
+}
+.menu-btn:hover { background:#5E9E33; }
+.menu-btn.secondary { background:#555; border-color:#888; }
+.menu-btn.secondary:hover { background:#666; }
+
+/* ── HUD ── */
+#hud { position:fixed; inset:0; pointer-events:none; z-index:100; }
+
+/* Crosshair */
+#crosshair {
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:26px; height:26px;
+}
+#crosshair::before, #crosshair::after {
+  content:''; position:absolute; background:rgba(255,255,255,0.85);
+}
+#crosshair::before { width:2px; height:100%; left:50%; top:0; transform:translateX(-50%); }
+#crosshair::after  { height:2px; width:100%; top:50%; left:0; transform:translateY(-50%); }
+
+/* Hotbar */
+#hotbar-wrap {
+  position:absolute; bottom:18px; left:50%; transform:translateX(-50%);
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  pointer-events:auto;
+}
+#selected-block-name {
+  color:#fff; font-size:0.75rem; font-family:'Courier New',monospace;
+  text-shadow:1px 1px 2px #000; min-height:16px; text-align:center;
+}
+#hotbar {
+  display:flex; gap:3px;
+  background:rgba(0,0,0,0.5); padding:3px; border:2px solid rgba(255,255,255,0.15);
+  border-radius:4px;
+}
+.hotbar-slot {
+  width:46px; height:46px;
+  background:rgba(139,90,43,0.7); border:2px solid #555;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; position:relative; border-radius:2px;
+  transition:border-color .1s;
+}
+.hotbar-slot.selected { border:2px solid #fff; background:rgba(200,160,80,0.5); }
+.hotbar-slot:hover:not(.selected) { border-color:#aaa; }
+.item-icon { image-rendering:pixelated; width:32px; height:32px; }
+
+/* Slot numbers */
+.hotbar-slot::after {
+  content: attr(data-index);
+  position:absolute; bottom:2px; right:4px;
+  color:rgba(255,255,255,0.6); font-size:0.55rem;
+  font-family:'Courier New',monospace;
+}
+.hotbar-slot[data-index="0"]::after { content:'1'; }
+.hotbar-slot[data-index="1"]::after { content:'2'; }
+.hotbar-slot[data-index="2"]::after { content:'3'; }
+.hotbar-slot[data-index="3"]::after { content:'4'; }
+.hotbar-slot[data-index="4"]::after { content:'5'; }
+.hotbar-slot[data-index="5"]::after { content:'6'; }
+.hotbar-slot[data-index="6"]::after { content:'7'; }
+.hotbar-slot[data-index="7"]::after { content:'8'; }
+.hotbar-slot[data-index="8"]::after { content:'9'; }
+
+/* Health & Hunger bars */
+#bars {
+  position:absolute; bottom:72px; left:50%; transform:translateX(-50%);
+  display:flex; flex-direction:column; gap:3px; align-items:center; pointer-events:none;
+}
+.bar-row { display:flex; gap:2px; }
+.heart, .hunger {
+  width:9px; height:9px;
+  background-size:cover; image-rendering:pixelated;
+}
+.heart { background:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAK0lEQVQY02NgQAX/GagEIxoFFIoRBXAFaAqpckFUiEEhmoMJFKIphFEIADeVBgNfwPWcAAAAAElFTkSuQmCC'); }
+.hunger { background:#8B4513; border-radius:1px; opacity:0.8; }
+
+/* FPS / debug */
+#debug {
+  position:absolute; top:8px; left:8px;
+  color:#fff; font-size:0.7rem; font-family:'Courier New',monospace;
+  text-shadow:1px 1px 2px #000; line-height:1.6;
+  background:rgba(0,0,0,0.35); padding:4px 8px; border-radius:3px;
+}
+
+/* Block highlight label */
+#block-label {
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%, 40px);
+  color:#fff; font-size:0.72rem; font-family:'Courier New',monospace;
+  text-shadow:1px 1px 2px #000; pointer-events:none;
+}
+
+/* ── INVENTORY SCREEN ── */
+#inventory-screen {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.7); z-index:150;
+  flex-direction:column; align-items:center; justify-content:center;
+  pointer-events:auto;
+}
+#inventory-inner {
+  background:#c6c6c6; border:2px solid #555; padding:16px;
+  min-width:360px; max-width:540px; width:90%;
+  border-radius:3px; box-shadow:4px 4px 0 #000;
+}
+#inventory-inner h2 {
+  font-family:'Courier New',monospace; font-size:0.85rem;
+  color:#333; margin-bottom:10px; text-transform:uppercase;
+  letter-spacing:2px;
+}
+#inv-main-grid {
+  display:grid; grid-template-columns:repeat(9,1fr); gap:3px; margin-bottom:12px;
+}
+.inv-slot {
+  width:36px; height:36px;
+  background:#8B8B8B; border:2px solid;
+  border-color:#555 #fff #fff #555;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; position:relative;
+}
+.inv-slot:hover { border-color:#fff #555 #555 #fff; background:#9E9E9E; }
+.inv-slot.selected { outline:2px solid #FFF; }
+.inv-divider { border:none; border-top:2px solid #999; margin:8px 0; }
+#inv-hotbar-grid {
+  display:grid; grid-template-columns:repeat(9,1fr); gap:3px;
+}
+.inv-close-row { display:flex; justify-content:flex-end; margin-top:10px; }
+.inv-close-btn {
+  padding:4px 12px; background:#555; color:#fff; border:2px solid #333;
+  font-family:'Courier New',monospace; cursor:pointer; font-size:0.75rem;
+}
+.inv-close-btn:hover { background:#666; }
+#inv-tip {
+  color:#555; font-size:0.7rem; font-family:'Courier New',monospace;
+  margin-top:6px; text-align:center;
+}
+
+/* ── BREAK OVERLAY ── */
+#break-overlay {
+  position:fixed; pointer-events:none; z-index:99;
+  display:none;
+}
+#break-overlay canvas { position:absolute; top:0; left:0; }
+
+/* ── NOTIFICATIONS ── */
+#notif {
+  position:fixed; top:24px; right:16px;
+  font-family:'Courier New',monospace; font-size:0.75rem;
+  color:#fff; text-shadow:1px 1px 2px #000;
+  background:rgba(0,0,0,0.55); padding:6px 12px; border-radius:3px;
+  display:none; z-index:160;
+}
+
+/* ── CONTROLS HELP ── */
+#controls-help {
+  position:fixed; top:50%; right:12px; transform:translateY(-50%);
+  background:rgba(0,0,0,0.55); color:#ccc; font-size:0.65rem;
+  font-family:'Courier New',monospace; padding:8px 12px; border-radius:3px;
+  line-height:2; display:none; z-index:99;
+}
+</style>
+</head>
+<body>
+
+<!-- CANVAS -->
+<canvas id="gameCanvas"></canvas>
+
+<!-- MENU OVERLAY -->
+<div id="menu-overlay">
+  <h1>⛏ CraftWeb</h1>
+  <p>Faithful 16x Texture Pack • Three.js Engine</p>
+  <button class="menu-btn" id="btn-play">▶ MAIN MENU — PLAY</button>
+  <button class="menu-btn secondary" id="btn-help-toggle">? CONTROLS</button>
+  <div id="menu-controls" style="display:none;color:#aaa;font-size:0.8rem;font-family:'Courier New',monospace;line-height:2;text-align:left;margin-top:8px;">
+    WASD — Move &nbsp;|&nbsp; MOUSE — Look<br>
+    SPACE — Jump &nbsp;|&nbsp; SPACE×2 — Fly<br>
+    CTRL+W — Sprint &nbsp;|&nbsp; SHIFT — Crouch<br>
+    LEFT CLICK — Break &nbsp;|&nbsp; RIGHT CLICK — Place<br>
+    1-9 / SCROLL — Hotbar &nbsp;|&nbsp; E — Inventory<br>
+    ESC — Menu &nbsp;|&nbsp; F3 — Debug info
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="hud" style="display:none;">
+  <div id="crosshair"></div>
+  <div id="block-label"></div>
+
+  <div id="bars">
+    <div class="bar-row" id="hearts-row"></div>
+    <div class="bar-row" id="hunger-row"></div>
+  </div>
+
+  <div id="hotbar-wrap">
+    <div id="selected-block-name"></div>
+    <div id="hotbar"></div>
+  </div>
+
+  <div id="debug"></div>
+</div>
+
+<!-- INVENTORY SCREEN -->
+<div id="inventory-screen">
+  <div id="inventory-inner">
+    <h2>🎒 Inventory — Click block to put in hotbar</h2>
+    <div id="inv-main-grid"></div>
+    <hr class="inv-divider">
+    <div id="inv-hotbar-grid"></div>
+    <div id="inv-tip">Left click: set hotbar slot | Right click: add to empty slot | E: close</div>
+    <div class="inv-close-row">
+      <button class="inv-close-btn" id="inv-close-btn">Close [E]</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div id="notif"></div>
+
+<!-- CONTROLS HELP (in game) -->
+<div id="controls-help">
+  WASD — Move<br>
+  CTRL+W — Sprint<br>
+  SHIFT — Crouch/Fly Down<br>
+  SPACE — Jump / Fly Up<br>
+  SPACE×2 — Toggle Fly<br>
+  Left Click — Break Block<br>
+  Right Click — Place Block<br>
+  Scroll — Change slot<br>
+  1-9 — Hotbar<br>
+  E — Inventory<br>
+  F3 — Debug<br>
+  ESC — Menu
+</div>
+
+<!-- THREE.JS CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<!-- GAME SCRIPTS -->
+<script src="textures.js"></script>
+<script src="world.js"></script>
+<script src="renderer.js"></script>
+<script src="player.js"></script>
+<script src="inventory.js"></script>
+
+<script>
+'use strict';
+// ════════════════════════════════════════════════
+//  MAIN GAME ENGINE
+// ════════════════════════════════════════════════
+
+const canvas = document.getElementById('gameCanvas');
+let world, renderer3d, player, inventory;
+let scene, camera, threeRenderer;
+let running = false;
+let lastTime = 0;
+let showDebug = false;
+let showHelp = false;
+
+// Block breaking state
+let breakTarget = null;
+let breakProgress = 0;
+const BREAK_TIME = 0.7; // seconds
+let breakMesh = null;  // overlay mesh
+
+// Block placement cooldown
+let placeCooldown = 0;
+let breakCooldown = 0;
+
+// Highlight mesh
+let highlightMesh = null;
+
+// FPS counter
+let fpsFrames = 0, fpsTime = 0, fps = 0;
+
+// ── INIT ───────────────────────────────────────
+function initThree() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x87CEEB);
+  scene.fog = new THREE.Fog(0x87CEEB, 60, 120);
+
+  camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 200);
+
+  threeRenderer = new THREE.WebGLRenderer({ canvas, antialias: false });
+  threeRenderer.setPixelRatio(window.devicePixelRatio);
+  threeRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
+  threeRenderer.shadowMap.enabled = false;
+
+  // Lighting
+  const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+  scene.add(ambient);
+  const sun = new THREE.DirectionalLight(0xfff8e0, 1.0);
+  sun.position.set(100, 200, 50);
+  scene.add(sun);
+
+  // Block highlight wireframe
+  const hlGeo = new THREE.BoxGeometry(1.002, 1.002, 1.002);
+  const hlMat = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true, depthTest: true });
+  highlightMesh = new THREE.Mesh(hlGeo, hlMat);
+  highlightMesh.visible = false;
+  scene.add(highlightMesh);
+
+  window.addEventListener('resize', onResize);
+}
+
+function onResize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  threeRenderer.setSize(w, h);
+}
+
+function initGame() {
+  world = new World(Math.floor(Math.random() * 999999));
+  renderer3d = new MinecraftRenderer(world);
+  renderer3d.init(scene);
+  player = new Player(world);
+  inventory = new Inventory();
+
+  // Spawn player
+  // Pre-generate spawn chunks
+  for (let dx = -2; dx <= 2; dx++)
+    for (let dz = -2; dz <= 2; dz++)
+      world.getChunk(dx, dz);
+
+  player.spawnAtSurface();
+
+  // Build hearts/hunger UI
+  buildBarsUI();
+
+  notify('World generated! Press E for inventory.');
+}
+
+function buildBarsUI() {
+  const hearts = document.getElementById('hearts-row');
+  const hunger = document.getElementById('hunger-row');
+  if (hearts) {
+    hearts.innerHTML = '';
+    for (let i = 0; i < 10; i++) {
+      const h = document.createElement('div');
+      h.className = 'heart';
+      hearts.appendChild(h);
+    }
+  }
+  if (hunger) {
+    hunger.innerHTML = '';
+    for (let i = 0; i < 10; i++) {
+      const h = document.createElement('div');
+      h.className = 'hunger';
+      hunger.appendChild(h);
+    }
+  }
+}
+
+// ── POINTER LOCK ───────────────────────────────
+function requestLock() {
+  canvas.requestPointerLock();
+}
+
+document.addEventListener('pointerlockchange', () => {
+  if (!document.pointerLockElement) {
+    // Pointer unlocked — show menu if not inventory
+    if (!inventory?.open) {
+      showMenu(true);
+    }
+  }
+});
+
+canvas.addEventListener('click', () => {
+  if (!running) return;
+  if (!document.pointerLockElement && !inventory?.open) {
+    requestLock();
+  }
+});
+
+// ── MOUSE LOOK ─────────────────────────────────
+let mouseSens = 0.0015;
+document.addEventListener('mousemove', e => {
+  if (!running || !document.pointerLockElement) return;
+  if (inventory?.open) return;
+  player.yaw   -= e.movementX * mouseSens;
+  player.pitch -= e.movementY * mouseSens;
+  player.pitch = Math.max(-Math.PI/2 + 0.01, Math.min(Math.PI/2 - 0.01, player.pitch));
+});
+
+// ── MOUSE CLICKS ───────────────────────────────
+canvas.addEventListener('mousedown', e => {
+  if (!running || !document.pointerLockElement) return;
+  if (inventory?.open) return;
+
+  if (e.button === 0) {
+    // Left click: start breaking
+    const hit = getPlayerLook();
+    if (hit?.hit) {
+      const id = world.getBlock(hit.x, hit.y, hit.z);
+      if (id === 10) { notify('Cannot break Bedrock!'); return; } // bedrock
+      breakTarget = { x: hit.x, y: hit.y, z: hit.z };
+      breakProgress = 0;
+    }
+  }
+
+  if (e.button === 2) {
+    // Right click: place block
+    if (placeCooldown > 0) return;
+    const hit = getPlayerLook();
+    if (hit?.hit) {
+      const blockId = inventory.selectedBlock;
+      if (!blockId) { notify('No block selected!'); return; }
+      // Don't place inside player
+      const px = Math.floor(player.x), py = Math.floor(player.y), pz = Math.floor(player.z);
+      const py2 = Math.floor(player.y + 1);
+      if (hit.px === px && (hit.py === py || hit.py === py2) && hit.pz === pz) {
+        return; // would place inside player
+      }
+      world.setBlock(hit.px, hit.py, hit.pz, blockId);
+      placeCooldown = 0.25;
+      notify('Placed: ' + BLOCKS[blockId]?.name);
+    }
+  }
+});
+
+canvas.addEventListener('mouseup', e => {
+  if (e.button === 0) {
+    breakTarget = null;
+    breakProgress = 0;
+  }
+});
+
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+// ── RAYCASTING ─────────────────────────────────
+function getPlayerLook() {
+  const origin = { x: player.eyeX, y: player.eyeY, z: player.eyeZ };
+  const dir = player.getDirection();
+  return raycastBlock(world, origin, dir, 6);
+}
+
+// ── GAME LOOP ──────────────────────────────────
+function gameLoop(ts) {
+  if (!running) return;
+  requestAnimationFrame(gameLoop);
+
+  const dt = Math.min((ts - lastTime) / 1000, 0.05);
+  lastTime = ts;
+
+  // FPS counter
+  fpsFrames++;
+  fpsTime += dt;
+  if (fpsTime >= 0.5) { fps = Math.round(fpsFrames / fpsTime); fpsFrames = 0; fpsTime = 0; }
+
+  placeCooldown = Math.max(0, placeCooldown - dt);
+  breakCooldown = Math.max(0, breakCooldown - dt);
+
+  // Update player
+  player.update(dt);
+
+  // Block breaking
+  if (breakTarget) {
+    const { x, y, z } = breakTarget;
+    const curId = world.getBlock(x, y, z);
+    if (curId === 0) { breakTarget = null; breakProgress = 0; }
+    else {
+      breakProgress += dt / BREAK_TIME;
+      if (breakProgress >= 1) {
+        world.setBlock(x, y, z, 0);
+        breakTarget = null; breakProgress = 0;
+        notify('Broke: ' + BLOCKS[curId]?.name);
+      }
+    }
+  }
+
+  // Update renderer (load/unload chunks)
+  renderer3d.update(player.x, player.z);
+
+  // Camera from player
+  const pitch = player.pitch, yaw = player.yaw;
+  camera.position.set(player.eyeX, player.eyeY, player.eyeZ);
+
+  // First-person camera rotation using Euler YXZ order
+  camera.rotation.order = 'YXZ';
+  camera.rotation.y = -yaw;
+  camera.rotation.x = pitch;
+  camera.rotation.z = 0;
+
+  // Highlight targeted block
+  const hit = getPlayerLook();
+  if (hit?.hit) {
+    highlightMesh.position.set(hit.x + 0.5, hit.y + 0.5, hit.z + 0.5);
+    highlightMesh.visible = true;
+    const bName = BLOCKS[world.getBlock(hit.x, hit.y, hit.z)]?.name || '';
+    document.getElementById('block-label').textContent = bName;
+  } else {
+    highlightMesh.visible = false;
+    document.getElementById('block-label').textContent = '';
+  }
+
+  // Debug info
+  if (showDebug) {
+    const cx = Math.floor(player.x / CHUNK_SIZE);
+    const cz = Math.floor(player.z / CHUNK_SIZE);
+    document.getElementById('debug').style.display = 'block';
+    document.getElementById('debug').innerHTML =
+      `FPS: ${fps}<br>` +
+      `XYZ: ${player.x.toFixed(2)} / ${player.eyeY.toFixed(2)} / ${player.z.toFixed(2)}<br>` +
+      `Chunk: ${cx}, ${cz}<br>` +
+      `Flying: ${player.flying} | Ground: ${player.onGround}<br>` +
+      `Chunks loaded: ${renderer3d.chunkMeshes.size}<br>` +
+      `Selected: ${BLOCKS[inventory.selectedBlock]?.name || 'None'}`;
+  } else {
+    document.getElementById('debug').style.display = 'none';
+  }
+
+  threeRenderer.render(scene, camera);
+}
+
+// ── KEY BINDINGS ────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.code === 'F3') { showDebug = !showDebug; }
+  if (e.code === 'F1') { showHelp = !showHelp; document.getElementById('controls-help').style.display = showHelp ? 'block' : 'none'; }
+  if (e.code === 'Escape' && running) {
+    if (inventory?.open) {
+      inventory.toggleInventory();
+    } else {
+      showMenu(true);
+    }
+  }
+});
+
+// ── UI HELPERS ─────────────────────────────────
+function showMenu(show) {
+  document.getElementById('menu-overlay').style.display = show ? 'flex' : 'none';
+  document.getElementById('hud').style.display = show ? 'none' : 'block';
+  if (show) document.exitPointerLock?.();
+}
+
+let notifTimeout;
+function notify(msg) {
+  const el = document.getElementById('notif');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(notifTimeout);
+  notifTimeout = setTimeout(() => { el.style.display = 'none'; }, 2200);
+}
+
+// ── MENU BUTTONS ───────────────────────────────
+document.getElementById('btn-play').addEventListener('click', () => {
+  if (!world) {
+    // First time: init everything
+    initThree();
+    initGame();
+    running = true;
+  }
+  showMenu(false);
+  requestLock();
+  if (!lastTime) {
+    lastTime = performance.now();
+    requestAnimationFrame(gameLoop);
+  }
+});
+
+document.getElementById('btn-help-toggle').addEventListener('click', () => {
+  const el = document.getElementById('menu-controls');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+});
+
+document.getElementById('inv-close-btn').addEventListener('click', () => {
+  inventory?.toggleInventory();
+});
+
+// Prevent right-click menu
+window.addEventListener('contextmenu', e => e.preventDefault());
+</script>
+</body>
+</html>
