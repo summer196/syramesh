@@ -120,8 +120,8 @@ class Player {
 
     // Calc velocity from yaw
     const sy = Math.sin(this.yaw), cy = Math.cos(this.yaw);
-    let mvX = (sy * fwd + cy * right) * speed;
-    let mvZ = (cy * fwd - sy * right) * speed;
+    let mvX = (sy * fwd - cy * right) * speed;
+    let mvZ = (cy * fwd + sy * right) * speed;
 
     if (this.flying) {
       // Vertical fly control
