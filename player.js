@@ -101,10 +101,10 @@ class Player {
 
     // Movement direction from keys
     let fwd = 0, right = 0, up = 0;
-    if (k['KeyW']) fwd = 1;
-    if (k['KeyS']) fwd = -1;
-    if (k['KeyA']) right = 1;
-    if (k['KeyD']) right = -1;
+    if (k['KeyW']) fwd = -1;
+    if (k['KeyS']) fwd = 1;
+    if (k['KeyA']) right = -1;
+    if (k['KeyD']) right = 1;
 
     // Horizontal speed
     let speed;
