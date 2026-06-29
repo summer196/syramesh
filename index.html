@@ -406,7 +406,7 @@ document.addEventListener('mousemove', e => {
   if (!running || !document.pointerLockElement) return;
   if (inventory?.open) return;
   player.yaw   += e.movementX * mouseSens;
-  player.pitch += e.movementY * mouseSens;
+  player.pitch -= e.movementY * mouseSens;
   player.pitch = Math.max(-Math.PI/2 + 0.01, Math.min(Math.PI/2 - 0.01, player.pitch));
 });
 
