@@ -101,10 +101,10 @@ class Player {
 
     // Movement direction from keys
     let fwd = 0, right = 0, up = 0;
-    if (k['KeyW']) fwd = -1;
-    if (k['KeyS']) fwd = 1;
-    if (k['KeyA']) right = 1;
-    if (k['KeyD']) right = -1;
+    if (k['KeyW']) fwd = 1;
+    if (k['KeyS']) fwd = -1;
+    if (k['KeyA']) right = -1;
+    if (k['KeyD']) right = 1;
 
     // Horizontal speed
     let speed;
@@ -120,8 +120,8 @@ class Player {
 
     // Calc velocity from yaw
     const sy = Math.sin(this.yaw), cy = Math.cos(this.yaw);
-    let mvX = (sy * fwd - cy * right) * speed;
-    let mvZ = (cy * fwd + sy * right) * speed;
+    let mvX = (sy * fwd + cy * right) * speed;
+    let mvZ = (cy * fwd - sy * right) * speed;
 
     if (this.flying) {
       // Vertical fly control
