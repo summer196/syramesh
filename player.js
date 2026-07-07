@@ -69,7 +69,7 @@ class Player {
   }
 
   get eyeX() { return this.x; }
-  get eyeY() { return this.y + this.EYE_HEIGHT; }
+  get eyeY() { return this.y - this.EYE_HEIGHT; }
   get eyeZ() { return this.z; }
 
   getDirection() {
@@ -79,7 +79,7 @@ class Player {
     const cosP = Math.cos(this.pitch);
     return {
       x:  Math.sin(this.yaw) * cosP,
-      y: -Math.sin(this.pitch),
+      y:  Math.sin(this.pitch),
       z:  Math.cos(this.yaw) * cosP,
     };
   }
